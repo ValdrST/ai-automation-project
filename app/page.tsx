@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import TaskList from "@/components/TaskList";
 import { cookies } from "next/headers";
 export default async function Home() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const emailFromCookie = cookieStore.get("user_email")?.value || null;
   if (!emailFromCookie) {
     // Esto NO redirige desde server; RequireLogin se encarga en cliente.
