@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 // 1. Tipo para una tarea (coincide con tu tabla de Supabase)
@@ -23,11 +24,10 @@ export default function TaskList({ initialTasks }: TaskListProps) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   // Cargar email correctamente
-  useEffect(() => {
-    const email = localStorage.getItem("user_email");
-    setUserEmail(email);
-  }, []);
-
+useEffect(() => {
+  const email = localStorage.getItem("user_email");
+  setUserEmail(email);
+}, []);
   async function addTask() {
     console.log("ADD CLICKED", { newTask, userEmail });
 
