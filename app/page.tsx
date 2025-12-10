@@ -1,7 +1,7 @@
 import RequireLogin from "@/components/RequireLogin";
 import { supabase } from "@/lib/supabase";
 import TaskList from "@/components/TaskList";
-
+import { cookies } from "next/headers";
 export default async function Home() {
   const cookieStore = cookies();
   const emailFromCookie = cookieStore.get("user_email")?.value || null;
