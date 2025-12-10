@@ -22,7 +22,27 @@ export default function TaskList({ initialTasks }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  async function toggleComplete(task: Task) {
+    const { data } = await supabase
+      .from("tasks")
+      .update({ completed: !task.completed })
+      .eq("id", task.id)
+      .select()
+      .single();
 
+    setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
+  }
+
+  async function updateTitle(task: Task, newTitle: string) {
+    const { data } = await supabase
+      .from("tasks")
+      .update({ title: newTitle })
+      .eq("id", task.id)
+      .select()
+      .single();
+      
+    setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
+  }
   // Cargar email correctamente
 useEffect(() => {
   const email = localStorage.getItem("user_email");
