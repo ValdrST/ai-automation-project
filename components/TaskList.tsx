@@ -20,12 +20,26 @@ interface TaskListProps {
 export default function TaskList({ initialTasks }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
-  const userEmail = typeof window !== "undefined"
-    ? localStorage.getItem("user_email")
-    : null;
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  // Cargar email correctamente
+  useEffect(() => {
+    const email = localStorage.getItem("user_email");
+    setUserEmail(email);
+  }, []);
 
   async function addTask() {
-    if (!newTask.trim() || !userEmail) return;
+    console.log("ADD CLICKED", { newTask, userEmail });
+
+    if (!newTask.trim()) {
+      alert("Task title is empty");
+      return;
+    }
+
+    if (!userEmail) {
+      alert("No user email found. You need to log in again.");
+      return;
+    }
 
     const { data, error } = await supabase
       .from("tasks")
@@ -38,46 +52,12 @@ export default function TaskList({ initialTasks }: TaskListProps) {
 
     if (error) {
       console.error(error);
+      alert("Error inserting task: " + error.message);
       return;
     }
 
     setTasks([...tasks, data as Task]);
     setNewTask("");
-  }
-
-  async function toggleComplete(task: Task) {
-    const { data, error } = await supabase
-      .from("tasks")
-      .update({ completed: !task.completed })
-      .eq("id", task.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    setTasks(tasks.map((t) => (t.id === task.id ? (data as Task) : t)));
-  }
-
-  async function updateTitle(task: Task, newTitle: string) {
-    const title = newTitle.trim();
-    if (!title) return;
-
-    const { data, error } = await supabase
-      .from("tasks")
-      .update({ title })
-      .eq("id", task.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    setTasks(tasks.map((t) => (t.id === task.id ? (data as Task) : t)));
   }
 
   return (
