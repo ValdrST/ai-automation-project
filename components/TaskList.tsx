@@ -1,43 +1,83 @@
 "use client";
+
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-export default function TaskList({ initialTasks }) {
-  const [tasks, setTasks] = useState(initialTasks);
+// 1. Tipo para una tarea (coincide con tu tabla de Supabase)
+export interface Task {
+  id: string;
+  title: string;
+  completed: boolean;
+  user_email: string;
+  inserted_at: string;
+}
+
+// 2. Tipar props del componente
+interface TaskListProps {
+  initialTasks: Task[];
+}
+
+export default function TaskList({ initialTasks }: TaskListProps) {
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
-  const userEmail = localStorage.getItem("user_email");
+  const userEmail = typeof window !== "undefined"
+    ? localStorage.getItem("user_email")
+    : null;
 
   async function addTask() {
-    const { data } = await supabase
+    if (!newTask.trim() || !userEmail) return;
+
+    const { data, error } = await supabase
       .from("tasks")
-      .insert({ title: newTask, user_email: userEmail })
+      .insert({
+        title: newTask,
+        user_email: userEmail,
+      })
       .select()
       .single();
 
-    setTasks([...tasks, data]);
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setTasks([...tasks, data as Task]);
     setNewTask("");
   }
 
-  async function toggleComplete(task) {
-    const { data } = await supabase
+  async function toggleComplete(task: Task) {
+    const { data, error } = await supabase
       .from("tasks")
       .update({ completed: !task.completed })
       .eq("id", task.id)
       .select()
       .single();
 
-    setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setTasks(tasks.map((t) => (t.id === task.id ? (data as Task) : t)));
   }
 
-  async function updateTitle(task, newTitle) {
-    const { data } = await supabase
+  async function updateTitle(task: Task, newTitle: string) {
+    const title = newTitle.trim();
+    if (!title) return;
+
+    const { data, error } = await supabase
       .from("tasks")
-      .update({ title: newTitle })
+      .update({ title })
       .eq("id", task.id)
       .select()
       .single();
-      
-    setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    setTasks(tasks.map((t) => (t.id === task.id ? (data as Task) : t)));
   }
 
   return (
