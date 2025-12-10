@@ -3,7 +3,8 @@
 import { cookies } from "next/headers";
 
 export async function setUserEmailCookie(email: string) {
-  cookies().set("user_email", email, {
+    const cookieServer = await cookies();
+  cookieServer.set("user_email", email, {
     httpOnly: false,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
