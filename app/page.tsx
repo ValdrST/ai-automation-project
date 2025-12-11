@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 export default async function Home() {
   const cookieStore = await cookies();
   const emailFromCookie = cookieStore.get("user_email")?.value || null;
+  console.log(emailFromCookie);
   if (!emailFromCookie) {
     return <RequireLogin>Loading...</RequireLogin>;
   }
