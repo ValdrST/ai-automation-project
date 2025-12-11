@@ -39,6 +39,12 @@ export default function TaskList({ initialTasks }: TaskListProps) {
       .eq("id", task.id)
       .select()
       .single();
+
+      await fetch("https://valdrst.app.n8n.cloud/webhook-test/task-beautifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
       
     setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
   }
@@ -68,6 +74,13 @@ useEffect(() => {
       })
       .select()
       .single();
+    if (!error) {
+      await fetch("https://valdrst.app.n8n.cloud/webhook-test/task-beautifier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    }
 
     if (error) {
       console.error(error);
