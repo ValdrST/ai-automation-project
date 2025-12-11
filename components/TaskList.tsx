@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-const WEBHOOKN8N = 'https://valdrst.app.n8n.cloud/webhook/task-beautifier';
-// 1. Tipo para una tarea (coincide con tu tabla de Supabase)
+
+const WEBHOOKN8N = "https://valdrst.app.n8n.cloud/webhook/task-beautifier";
+
 export interface Task {
   id: string;
   title: string;
@@ -12,16 +13,23 @@ export interface Task {
   inserted_at: string;
 }
 
-// 2. Tipar props del componente
 interface TaskListProps {
   initialTasks: Task[];
-  userEmail: string; // ya no es null
+  userEmail: string;
 }
 
 export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
+
+  // Loaders
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdatingId, setIsUpdatingId] = useState<string | null>(null);
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+
   async function toggleComplete(task: Task) {
+    setIsUpdatingId(task.id);
+
     const { data } = await supabase
       .from("tasks")
       .update({ completed: !task.completed })
@@ -30,9 +38,14 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
       .single();
 
     setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
+    setIsUpdatingId(null);
   }
 
   async function updateTitle(task: Task, newTitle: string) {
+    if (newTitle === task.title) return;
+
+    setIsUpdatingId(task.id);
+
     const { data } = await supabase
       .from("tasks")
       .update({ title: newTitle })
@@ -40,27 +53,28 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
       .select()
       .single();
 
-      await fetch(WEBHOOKN8N, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      
+    await fetch(WEBHOOKN8N, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
     setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
+    setIsUpdatingId(null);
   }
 
   async function addTask() {
-    console.log("ADD CLICKED", { newTask, userEmail });
-
     if (!newTask.trim()) {
       alert("Task title is empty");
       return;
     }
 
     if (!userEmail) {
-      alert("No user email found. You need to log in again.");
+      alert("No user email found. Log in again.");
       return;
     }
+
+    setIsAdding(true);
 
     const { data, error } = await supabase
       .from("tasks")
@@ -70,6 +84,7 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
       })
       .select()
       .single();
+
     if (!error) {
       await fetch(WEBHOOKN8N, {
         method: "POST",
@@ -79,28 +94,29 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
     }
 
     if (error) {
-      console.error(error);
       alert("Error inserting task: " + error.message);
+      setIsAdding(false);
       return;
     }
 
     setTasks([...tasks, data as Task]);
     setNewTask("");
+    setIsAdding(false);
   }
 
   async function deleteTask(taskId: string) {
-    const { error } = await supabase
-      .from("tasks")
-      .delete()
-      .eq("id", taskId);
+    setIsDeletingId(taskId);
+
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
 
     if (error) {
-      console.error(error);
       alert("Error deleting task: " + error.message);
+      setIsDeletingId(null);
       return;
     }
 
-    setTasks(tasks.filter((task) => task.id !== taskId));
+    setTasks(tasks.filter((t) => t.id !== taskId));
+    setIsDeletingId(null);
   }
 
   return (
@@ -112,13 +128,15 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
           className="border p-2 flex-1"
           placeholder="New task..."
           value={newTask}
+          disabled={isAdding}
           onChange={(e) => setNewTask(e.target.value)}
         />
         <button
           className="ml-2 bg-green-600 text-white px-4 py-2 rounded"
           onClick={addTask}
+          disabled={isAdding}
         >
-          Add
+          {isAdding ? "Adding..." : "Add"}
         </button>
       </div>
 
@@ -128,15 +146,25 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
             <input
               type="checkbox"
               checked={t.completed}
+              disabled={isUpdatingId === t.id}
               onChange={() => toggleComplete(t)}
             />
 
             <input
               className={`flex-1 mx-2 ${t.completed ? "line-through" : ""}`}
               defaultValue={t.title}
+              disabled={isUpdatingId === t.id}
               onBlur={(e) => updateTitle(t, e.target.value)}
             />
-            <button type="button" onClick={() => deleteTask(t.id)}>Delete</button>
+
+            <button
+              type="button"
+              className="text-red-600"
+              onClick={() => deleteTask(t.id)}
+              disabled={isDeletingId === t.id}
+            >
+              {isDeletingId === t.id ? "Deleting..." : "Delete"}
+            </button>
           </li>
         ))}
       </ul>
