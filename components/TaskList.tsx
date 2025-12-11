@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-
+const WEBHOOKN8N = 'https://valdrst.app.n8n.cloud/webhook/task-beautifier';
 // 1. Tipo para una tarea (coincide con tu tabla de Supabase)
 export interface Task {
   id: string;
@@ -40,7 +40,7 @@ export default function TaskList({ initialTasks }: TaskListProps) {
       .select()
       .single();
 
-      await fetch("https://valdrst.app.n8n.cloud/webhook-test/task-beautifier", {
+      await fetch(WEBHOOKN8N, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -75,7 +75,7 @@ useEffect(() => {
       .select()
       .single();
     if (!error) {
-      await fetch("https://valdrst.app.n8n.cloud/webhook-test/task-beautifier", {
+      await fetch(WEBHOOKN8N, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
