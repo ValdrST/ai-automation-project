@@ -53,11 +53,11 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
       .select()
       .single();
 
-    await fetch(WEBHOOKN8N, {
+    /*await fetch(WEBHOOKN8N, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    });
+    });*/
 
     setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
     setIsUpdatingId(null);
