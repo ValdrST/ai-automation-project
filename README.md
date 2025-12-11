@@ -175,5 +175,11 @@ N8N_WEBHOOK_URL=https://your-n8n-instance/webhook/ai-enhance
 
 ---
 
+## Temporary test links
+
+- [vercel app](https://aiautomationproject-git-main-valdr-stiglitzs-projects.vercel.app)
+- [n8n workflow](https://valdrst.app.n8n.cloud/workflow/5VuVM8UXqIEDpAh4)
+- [supabase database](https://supabase.com/dashboard/project/zjrduplrpggvgecnosff)
+
 ## License
 MIT
