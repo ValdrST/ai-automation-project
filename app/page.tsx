@@ -15,6 +15,6 @@ export default async function Home() {
     .eq("user_email", emailFromCookie)
     .order("inserted_at", { ascending: true });
   return (
-    <TaskList initialTasks={tasks ?? []} />
+    <TaskList initialTasks={tasks ?? []} userEmail={emailFromCookie} />
   );
 }

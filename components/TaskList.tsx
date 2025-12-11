@@ -15,12 +15,12 @@ export interface Task {
 // 2. Tipar props del componente
 interface TaskListProps {
   initialTasks: Task[];
+  userEmail: string; // ya no es null
 }
 
-export default function TaskList({ initialTasks }: TaskListProps) {
+export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [newTask, setNewTask] = useState("");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   async function toggleComplete(task: Task) {
     const { data } = await supabase
       .from("tasks")
@@ -48,11 +48,7 @@ export default function TaskList({ initialTasks }: TaskListProps) {
       
     setTasks(tasks.map((t) => (t.id === task.id ? data : t)));
   }
-  // Cargar email correctamente
-useEffect(() => {
-  const email = localStorage.getItem("user_email");
-  setUserEmail(email);
-}, []);
+
   async function addTask() {
     console.log("ADD CLICKED", { newTask, userEmail });
 
