@@ -88,6 +88,21 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
     setNewTask("");
   }
 
+  async function deleteTask(taskId: string) {
+    const { error } = await supabase
+      .from("tasks")
+      .delete()
+      .eq("id", taskId);
+
+    if (error) {
+      console.error(error);
+      alert("Error deleting task: " + error.message);
+      return;
+    }
+
+    setTasks(tasks.filter((task) => task.id !== taskId));
+  }
+
   return (
     <div className="p-6 max-w-md mx-auto">
       <h1 className="text-2xl font-bold mb-4">My Tasks</h1>
@@ -121,6 +136,7 @@ export default function TaskList({ initialTasks, userEmail }: TaskListProps) {
               defaultValue={t.title}
               onBlur={(e) => updateTitle(t, e.target.value)}
             />
+            <button type="button" onClick={() => deleteTask(t.id)}>Delete</button>
           </li>
         ))}
       </ul>
